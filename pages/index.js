@@ -1,7 +1,43 @@
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
 
+function useWindowSize() {
+  // Initialize state with undefined width/height so server and client renders match
+  // Learn more here: https://joshwcomeau.com/react/the-perils-of-rehydration/
+  const [windowSize, setWindowSize] = useState({
+    width: undefined,
+    height: undefined,
+  });
+
+  useEffect(() => {
+    // only execute all the code below in client side
+    if (typeof window !== 'undefined') {
+      // Handler to call on window resize
+      function handleResize() {
+        // Set window width/height to state
+        setWindowSize({
+          width: window.innerWidth,
+          height: window.innerHeight,
+        });
+      }
+
+      // Add event listener
+      window.addEventListener("resize", handleResize);
+
+      // Call handler right away so state gets updated with initial window size
+      handleResize();
+
+      // Remove event listener on cleanup
+      return () => window.removeEventListener("resize", handleResize);
+    }
+  }, []); // Empty array ensures that effect is only run on mount
+  return windowSize;
+}
+
 export default function Home() {
+  const size = useWindowSize()
+
   return (
     <div className={styles.container}>
       <Head>
@@ -60,6 +96,24 @@ export default function Home() {
           <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
         </a>
       </footer>
+
+      <div id="bg">
+        <svg
+          className={styles.bglayer}
+          width={size.width}
+          height={size.height}
+          viewBox={"0 0 100 100"}
+          preserveAspectRatio="none">
+          <path
+            d={`
+              M 0,0
+              L 100,0
+              C -50,30 150,70 0,90
+              Z
+            `}
+            fill="#ccffcc" />
+        </svg>
+      </div>
     </div>
   )
 }
